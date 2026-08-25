@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 
@@ -6,6 +7,8 @@ from youtube_transcript import cli, core
 from youtube_transcript.manifest import MANIFEST, render_skill
 
 from conftest import FakeSnippet, FakeTrack
+
+SKILL_FILE = Path(__file__).parent.parent / "skills" / "yt-transcript" / "SKILL.md"
 
 SNIPPETS = [
     FakeSnippet("<i>first</i>\n line", 0.0, 2.0),
@@ -93,6 +96,21 @@ def test_describe_emits_the_manifest(capsys):
 def test_describe_skill_emits_markdown(capsys):
     run(["describe", "--skill"])
     assert capsys.readouterr().out.strip() == render_skill().strip()
+
+
+def test_the_skill_carries_frontmatter_every_agent_can_read():
+    lines = render_skill().splitlines()
+    assert lines[0] == "---"
+    closing = lines.index("---", 1)
+    frontmatter = dict(line.split(": ", 1) for line in lines[1:closing])
+    assert frontmatter["name"] == "yt-transcript"
+    assert frontmatter["description"] == MANIFEST["skill"]["description"]
+
+
+def test_the_packaged_skill_is_in_sync():
+    """If this fails, run scripts/package-skill.sh and commit the result."""
+    packaged = SKILL_FILE.read_text(encoding="utf-8")
+    assert packaged.strip() == render_skill().strip()
 
 
 def _manifest_flags(command_name):
