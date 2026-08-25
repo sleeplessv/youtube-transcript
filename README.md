@@ -38,16 +38,30 @@ you English while looking like it worked. See
 
 ## Agents
 
+The repo ships an agent skill at `skills/yt-transcript/`. Claude Code, Cursor, Codex, and
+the 70-odd other agents the `skills` CLI knows about install it in one command:
+
 ```bash
-yt-transcript describe             # JSON manifest: commands, arguments, output fields, exit codes
-yt-transcript describe --skill     # the same thing as Markdown instructions
+npx skills add sleeplessv/youtube-transcript
 ```
 
-To drop the instructions into a project as a skill:
+For Claude Desktop, build the zip and upload it under Settings > Capabilities > Skills:
 
 ```bash
-mkdir -p .claude/skills/yt-transcript
-yt-transcript describe --skill > .claude/skills/yt-transcript/SKILL.md
+./scripts/package-skill.sh      # writes dist/yt-transcript-skill.zip
+```
+
+The skill installs instructions, not the CLI. It tells the agent to run `yt-transcript
+describe` first and to install the tool when that command is missing, so the one place this
+cannot work is a sandbox with no network access to GitHub.
+
+The skill is generated from the manifest. `yt-transcript describe --skill` prints exactly
+what ships in `skills/yt-transcript/SKILL.md`, and `yt-transcript describe` prints the same
+content as JSON: commands, arguments, output fields, and exit codes.
+
+```bash
+yt-transcript describe
+yt-transcript describe --skill
 ```
 
 ## Exit codes
@@ -73,6 +87,8 @@ uv run pytest -m network   # live smoke test against YouTube
 
 The manifest in `src/youtube_transcript/manifest.py` is the single source of truth for the
 command surface. A test asserts it against the argparse tree, so adding a flag in one place
-and not the other fails the suite.
+and not the other fails the suite. The same manifest renders `skills/yt-transcript/SKILL.md`,
+and another test fails when that committed copy is stale. Run `./scripts/package-skill.sh`
+to regenerate it and rebuild the Claude Desktop zip.
 
 Requires Python 3.10 or newer.
