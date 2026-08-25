@@ -1,9 +1,29 @@
 [project]
 name = "youtube-transcript"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Fetch transcripts from YouTube videos, from a CLI built for agents to drive."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
-    "youtube-transcript-api>=0.6.0",
+    "youtube-transcript-api>=1.2.0",
 ]
+
+[project.scripts]
+yt-transcript = "youtube_transcript.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/youtube_transcript"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["network: hits YouTube for real; deselected by default"]
+addopts = "-m 'not network'"
